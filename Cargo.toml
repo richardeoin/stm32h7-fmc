@@ -1,0 +1,29 @@
+[package]
+name = "stm32h7-fmc"
+version = "0.1.0"
+authors = ["Richard Meadows <richard@richard.fish>"]
+edition = "2018"
+categories = ["embedded", "hardware-support", "no-std"]
+description = "Hardware Abstraction Layer for Flexible Memory Controller (FMC) on STM32H7"
+keywords = ["stm32", "stm32h7", "sdram", "memory"]
+repository = "https://github.com/richardeoin/stm32h7-fmc"
+license = "MIT/Apache-2.0"
+readme = "README.md"
+exclude = [".gitignore", "README.tpl"]
+
+[dependencies]
+stm32h7xx-hal = "^0.3.0"
+log = { version = "^0.4.5", default-features = false, optional = true }
+
+[features]
+
+[dev-dependencies]
+cortex-m = "^0.6.0"
+cortex-m-rt = "0.6.10"
+panic-itm = "~0.4.1"
+log = { version = "^0.4.5" }
+cortex-m-log = { version = "~0.6", features = ["itm", "log-integration"] }
+
+[[example]]
+name = "stm32h747i-disco"
+required-features = ["stm32h7xx-hal/rt", "stm32h7xx-hal/stm32h747cm7"]
