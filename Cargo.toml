@@ -9,7 +9,7 @@ keywords = ["stm32", "stm32h7", "sdram", "memory"]
 repository = "https://github.com/richardeoin/stm32h7-fmc"
 license = "MIT/Apache-2.0"
 readme = "README.md"
-exclude = [".gitignore", "README.tpl"]
+exclude = [".gitignore", "README.tpl", ".travis.yml"]
 
 [dependencies]
 stm32h7xx-hal = "^0.3.0"
