@@ -39,7 +39,19 @@ fn systick_init(syst: &mut stm32::SYST, clocks: CoreClocks) {
 }
 
 /// Configure MPU for external SDRAM
-fn mpu_sdram_init(mpu: stm32::MPU, scb: &mut stm32::SCB) {
+///
+/// Memory address in location will be 32-byte aligned.
+///
+/// # Panics
+///
+/// Function will panic if `size` is not a power of 2. Function
+/// will panic if `size` is not at least 32 bytes.
+fn mpu_sdram_init(
+    mpu: &mut stm32::MPU,
+    scb: &mut stm32::SCB,
+    location: *mut u32,
+    size: usize,
+) {
     /// Refer to ARM®v7-M Architecture Reference Manual ARM DDI 0403
     /// Version E.b Section B3.5
     const MEMFAULTENA: u32 = 1 << 16;
@@ -55,21 +67,39 @@ fn mpu_sdram_init(mpu: stm32::MPU, scb: &mut stm32::SCB) {
     }
 
     const REGION_NUMBER0: u32 = 0x00;
-    const REGION_BASE_ADDRESS: u32 = 0xD000_0000;
-
     const REGION_FULL_ACCESS: u32 = 0x03;
-    const REGION_CACHEABLE: u32 = 0x01;
-    const REGION_SIZE_32MB: u32 = 0x18;
     const REGION_ENABLE: u32 = 0x01;
 
+    assert_eq!(
+        size & (size - 1),
+        0,
+        "SDRAM memory region size must be a power of 2"
+    );
+    assert_eq!(
+        size & 0x1F,
+        0,
+        "SDRAM memory region size must be 32 bytes or more"
+    );
+    fn log2minus1(sz: u32) -> u32 {
+        for x in 5..=31 {
+            if sz == (1 << x) {
+                return x - 1;
+            }
+        }
+        panic!("Unknown SDRAM memory region size!");
+    }
+
+    info!("SDRAM Memory Size 0x{:x}", log2minus1(size as u32));
+
     // Configure region 0
+    //
+    // Strongly ordered
     unsafe {
         mpu.rnr.write(REGION_NUMBER0);
-        mpu.rbar.write(REGION_BASE_ADDRESS);
+        mpu.rbar.write((location as u32) & !0x1F);
         mpu.rasr.write(
             (REGION_FULL_ACCESS << 24)
-                | (REGION_CACHEABLE << 17)
-                | (REGION_SIZE_32MB << 1)
+                | (log2minus1(size as u32) << 1)
                 | REGION_ENABLE,
         );
     }
@@ -160,13 +190,6 @@ fn main() -> ! {
     let mut lcd_led = gpioi.pi13.into_push_pull_output(); // LED2
     lcd_led.set_low().ok();
 
-    // MPU config for SDRAM write-through
-    mpu_sdram_init(cp.MPU, &mut cp.SCB);
-
-    info!("");
-    info!("");
-    info!("Initialised MPU...");
-
     // Initialise SDRAM...
     let fmc_io = stm32h7_fmc::PinsSdramBank2(fmc_pins! {
         // A0-A11
@@ -197,11 +220,19 @@ fn main() -> ! {
     let mut sdram =
         stm32h7_fmc::Sdram::new(dp.FMC, fmc_io, is42s32800g_6::Is42s32800g {});
 
+    let ram_size = 32 * 1024 * 1024;
     let ram = unsafe {
         // Initialise controller and SDRAM
         let ram_ptr = sdram.init(&mut delay, ccdr.clocks);
 
-        slice::from_raw_parts_mut(ram_ptr, 32 * 1024 * 1024)
+        // MPU config for SDRAM write-through
+        mpu_sdram_init(&mut cp.MPU, &mut cp.SCB, ram_ptr, ram_size);
+
+        info!("");
+        info!("");
+        info!("Initialised MPU...");
+
+        slice::from_raw_parts_mut(ram_ptr, ram_size)
     };
 
     info!("Initialised SDRAM...");
@@ -225,7 +256,6 @@ fn main() -> ! {
     info!("");
 
     cortex_m::asm::dsb();
-    cortex_m::asm::isb();
 
     for a in 0..len {
         assert_eq!(a as u32, ram[a]);
@@ -233,7 +263,26 @@ fn main() -> ! {
 
     info!("SDRAM checked ok!");
 
-    loop {}
+    // Worst-case check sequence for EMC
+    let mask = (ram.len() / 4) - 1;
+    let address = 0x5555_5555 & mask;
+    let data = 0xAAAA_AAAA;
+    ram[address] = data;
+    ram[!address & mask] = !data;
+
+    loop {
+        ram[address] = data;
+        cortex_m::asm::dsb();
+
+        assert_eq!(ram[!address & mask], !data);
+        cortex_m::asm::dsb();
+
+        ram[!address & mask] = !data;
+        cortex_m::asm::dsb();
+
+        assert_eq!(ram[address], data);
+        cortex_m::asm::dsb();
+    }
 }
 
 #[exception]
