@@ -12,21 +12,21 @@ readme = "README.md"
 exclude = [".gitignore", "README.tpl", ".travis.yml"]
 
 [package.metadata.docs.rs]
-features = ["stm32h7xx-hal/rt", "stm32h7xx-hal/stm32h743"]
-default-target = "thumbv7em-none-eabihf"
+features = ["stm32h7xx-hal/rt", "stm32h7xx-hal/stm32h743v"]
+targets = ["thumbv7em-none-eabihf"]
 
 [dependencies]
-stm32h7xx-hal = "^0.3.0"
-log = { version = "^0.4.5", default-features = false, optional = true }
+stm32h7xx-hal = "0.4.0"
+log = { version = "0.4.8", default-features = false, optional = true }
 
 [features]
 
 [dev-dependencies]
-cortex-m = "^0.6.0"
+cortex-m = "0.6.2"
 cortex-m-rt = "0.6.12"
-panic-itm = "~0.4.1"
-log = { version = "^0.4.5" }
-cortex-m-log = { version = "~0.6", features = ["itm", "log-integration"] }
+panic-itm = "0.4.1"
+log = "0.4.8"
+cortex-m-log = { version = "0.6.1", features = ["itm", "log-integration"] }
 
 [[example]]
 name = "stm32h747i-disco"
