@@ -310,7 +310,7 @@ where
         );
 
         // Common settings written to SDCR1 only
-        self.mem.fmc.sdbank1().sdcr.write(|w| {
+        self.mem.fmc.sdbank1().sdcr.modify(|_, w| {
             w.rpipe()
                 .bits(config.read_pipe_delay_cycles)
                 .rburst()
@@ -318,7 +318,7 @@ where
                 .sdclk()
                 .bits(config.sd_clock_divide)
         });
-        sd.sdcr.write(|w| {
+        sd.sdcr.modify(|_, w| {
             w.wp()
                 .bit(config.write_protection)
                 .cas()
@@ -361,13 +361,13 @@ where
             cmp::max(write_recovery_self_refresh, write_recovery_row_cycle);
 
         // Common seting written to SDTR1 only
-        self.mem.fmc.sdbank1().sdtr.write(|w| {
+        self.mem.fmc.sdbank1().sdtr.modify(|_, w| {
             w.trc()
                 .bits(timing.row_cycle - 1)
                 .trp()
                 .bits(timing.row_precharge - 1)
         });
-        sd.sdtr.write(|w| {
+        sd.sdtr.modify(|_, w| {
             w.trcd()
                 .bits(timing.row_to_column - 1)
                 .twr()
@@ -408,7 +408,7 @@ where
         };
 
         // Write to SDCMR
-        self.mem.fmc.sdcmr.write(|w| {
+        self.mem.fmc.sdcmr.modify(|_, w| {
             w.mrd()
                 .bits(mode_reg)
                 .nrfs()
