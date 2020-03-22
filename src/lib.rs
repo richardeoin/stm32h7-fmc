@@ -64,10 +64,10 @@
 //! ```rust
 //!     let ram = unsafe {
 //!         // Initialise controller and SDRAM
-//!         let ram_ptr = sdram.init(&mut delay, ccdr.clocks);
+//!         let ram_ptr: *mut u32 = sdram.init(&mut delay, ccdr.clocks);
 //!
-//!         // 32 MByte = 256Mbit SDRAM
-//!         slice::from_raw_parts_mut(ram_ptr, 32 * 1024 * 1024)
+//!         // 32 MByte = 256Mbit SDRAM = 8M u32 words
+//!         slice::from_raw_parts_mut(ram_ptr, 8 * 1024 * 1024)
 //!     };
 //! ```
 //!

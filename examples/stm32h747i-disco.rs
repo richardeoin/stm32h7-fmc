@@ -1,6 +1,7 @@
 #![no_main]
 #![no_std]
 
+use core::mem;
 use core::slice;
 
 extern crate cortex_m_rt as rt;
@@ -220,19 +221,22 @@ fn main() -> ! {
     let mut sdram =
         stm32h7_fmc::Sdram::new(dp.FMC, fmc_io, is42s32800g_6::Is42s32800g {});
 
-    let ram_size = 32 * 1024 * 1024;
+    // Initialise controller and SDRAM
     let ram = unsafe {
-        // Initialise controller and SDRAM
-        let ram_ptr = sdram.init(&mut delay, ccdr.clocks);
+        let ram_ptr: *mut u32 = sdram.init(&mut delay, ccdr.clocks);
+        let ram_size_bytes = 32 * 1024 * 1024;
 
         // MPU config for SDRAM write-through
-        mpu_sdram_init(&mut cp.MPU, &mut cp.SCB, ram_ptr, ram_size);
+        mpu_sdram_init(&mut cp.MPU, &mut cp.SCB, ram_ptr, ram_size_bytes);
 
         info!("");
         info!("");
         info!("Initialised MPU...");
 
-        slice::from_raw_parts_mut(ram_ptr, ram_size)
+        slice::from_raw_parts_mut(
+            ram_ptr,
+            ram_size_bytes / mem::size_of::<u32>(),
+        )
     };
 
     info!("Initialised SDRAM...");
