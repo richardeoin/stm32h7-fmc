@@ -19,7 +19,7 @@ pub mod is42s16400j_7 {
 
     /// Is42s16400j with Speed Grade 7
     ///
-    /// Configured with CAS latency 2, limited 133MHz
+    /// Configured with CAS latency 2, limited 100MHz
     #[derive(Clone, Copy, Debug, PartialEq)]
     pub struct Is42s16400j {}
 
@@ -34,14 +34,14 @@ pub mod is42s16400j_7 {
         /// Timing Parameters
         const TIMING: FmcSdramTiming = FmcSdramTiming {
             startup_delay_ns: 100_000,    // 100 µs
-            max_sd_clock_hz: 133_333_334, // 133 MHz
+            max_sd_clock_hz: 100_000_000, // 100 MHz
             refresh_period_ns: 15_625,    // 64ms / (4096 rows) = 15625ns
             mode_register_to_active: 2,   // tMRD = 2 cycles
-            exit_self_refresh: 10,        // tXSR = 70ns
-            active_to_precharge: 6,       // tRAS = 42ns
-            row_cycle: 9,                 // tRC = 63ns
-            row_precharge: 3,             // tRP = 15ns
-            row_to_column: 3,             // tRCD = 15ns
+            exit_self_refresh: 7,         // tXSR = 70ns
+            active_to_precharge: 4,       // tRAS = 42ns
+            row_cycle: 7,                 // tRC = 63ns
+            row_precharge: 2,             // tRP = 15ns
+            row_to_column: 2,             // tRCD = 15ns
         };
 
         /// SDRAM controller configuration
@@ -50,7 +50,7 @@ pub mod is42s16400j_7 {
             row_bits: 12,
             memory_data_width: 16, // 16-bit
             internal_banks: 4,     // 4 internal banks
-            cas_latency: 3,        // CAS latency = 3
+            cas_latency: 2,        // CAS latency = 2
             write_protection: false,
             sd_clock_divide: 2, // Divide by 2
             read_burst: true,
