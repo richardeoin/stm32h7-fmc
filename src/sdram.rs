@@ -6,7 +6,7 @@ use core::marker::PhantomData;
 
 use crate::hal::blocking::delay::DelayUs;
 use crate::stm32;
-use crate::stm32h7xx_hal::rcc::CoreClocks;
+use stm32h7xx_hal::rcc::CoreClocks;
 
 use crate::fmc::{Fmc, FmcBank, PinsSdram};
 
@@ -141,7 +141,11 @@ where
     /// [`PinsSdramBank1`](struct.PinsSdramBank1.html) and
     /// [`PinsSdramBank2`](struct.PinsSdramBank2.html)
     ///
-    /// Unchecked, does not panic.
+    /// # Safety
+    ///
+    /// The pins are not checked against the requirements for this
+    /// SDRAM chip. So you may be able to initialise a SDRAM without
+    /// enough pins to access the whole memory.
     pub unsafe fn new_unchecked(
         fmc: stm32::FMC,
         _pins: PINS,

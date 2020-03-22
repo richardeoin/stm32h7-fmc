@@ -112,7 +112,6 @@ extern crate log;
 #[macro_use]
 mod macros;
 
-use stm32h7xx_hal;
 use stm32h7xx_hal::hal;
 use stm32h7xx_hal::stm32;
 
