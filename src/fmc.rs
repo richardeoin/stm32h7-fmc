@@ -1,10 +1,8 @@
 //! HAL for Flexible memory controller (FMC)
 
-use crate::stm32;
 use crate::stm32::FMC;
 
-use crate::stm32::rcc::d1ccipr;
-use stm32h7xx_hal::rcc::CoreClocks;
+use stm32h7xx_hal::rcc::{rec, rec::ResetEnable, CoreClocks};
 use stm32h7xx_hal::time::Hertz;
 
 use stm32h7xx_hal::gpio::gpioa::PA7;
@@ -64,6 +62,9 @@ impl FmcBank {
 pub struct Fmc {
     /// Flexible memory controller (FMC)
     pub(crate) fmc: FMC,
+
+    /// FMC clock selection
+    clk_sel: rec::FmcClkSel,
 }
 
 /// Set of pins for an SDRAM
@@ -432,30 +433,21 @@ pins! {
 
 impl Fmc {
     /// New FMC instance
-    pub fn new(fmc: FMC) -> Self {
-        {
-            // Unsafe: only access bits specific to FMC
-            let rcc = unsafe { &*stm32::RCC::ptr() };
+    pub fn new(fmc: FMC, rec_fmc: rec::Fmc) -> Self {
+        // Enable clock and reset
+        let rec_fmc = rec_fmc.enable().reset();
+        let clk_sel = rec_fmc.get_kernel_clk_mux();
 
-            // Enable clock and reset
-            rcc.ahb3enr.modify(|_, w| w.fmcen().enabled());
-            rcc.ahb3rstr.modify(|_, w| w.fmcrst().set_bit());
-            rcc.ahb3rstr.modify(|_, w| w.fmcrst().clear_bit());
-        }
-
-        Fmc { fmc }
+        Fmc { fmc, clk_sel }
     }
 
     /// Current kernel clock (`fmc_ker_ck`)
-    pub fn get_ker_clk(clocks: CoreClocks) -> Option<Hertz> {
-        // Unsafe: read only
-        let rcc = unsafe { &*stm32::RCC::ptr() };
-
-        match rcc.d1ccipr.read().fmcsel().variant() {
-            d1ccipr::FMCSEL_A::RCC_HCLK3 => Some(clocks.hclk()),
-            d1ccipr::FMCSEL_A::PLL1_Q => clocks.pll1_q_ck(),
-            d1ccipr::FMCSEL_A::PLL2_R => clocks.pll2_r_ck(),
-            d1ccipr::FMCSEL_A::PER => clocks.per_ck(),
+    pub fn get_ker_clk(&self, clocks: CoreClocks) -> Option<Hertz> {
+        match self.clk_sel {
+            rec::FmcClkSel::RCC_HCLK3 => Some(clocks.hclk()),
+            rec::FmcClkSel::PLL1_Q => clocks.pll1_q_ck(),
+            rec::FmcClkSel::PLL2_R => clocks.pll2_r_ck(),
+            rec::FmcClkSel::PER => clocks.per_ck(),
         }
     }
 

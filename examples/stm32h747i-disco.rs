@@ -218,8 +218,12 @@ fn main() -> ! {
         gpioh.ph5               // SDNWE
     });
 
-    let mut sdram =
-        stm32h7_fmc::Sdram::new(dp.FMC, fmc_io, is42s32800g_6::Is42s32800g {});
+    let mut sdram = stm32h7_fmc::Sdram::new(
+        dp.FMC,
+        ccdr.peripheral.FMC,
+        fmc_io,
+        is42s32800g_6::Is42s32800g {},
+    );
 
     // Initialise controller and SDRAM
     let ram = unsafe {

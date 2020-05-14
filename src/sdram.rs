@@ -6,7 +6,7 @@ use core::marker::PhantomData;
 
 use crate::hal::blocking::delay::DelayUs;
 use crate::stm32;
-use stm32h7xx_hal::rcc::CoreClocks;
+use stm32h7xx_hal::rcc::{rec, CoreClocks};
 
 use crate::fmc::{Fmc, FmcBank, PinsSdram};
 
@@ -113,7 +113,12 @@ where
     ///
     /// * Panics if there are not enough bank address lines in `PINS`
     /// to access the whole SDRAM.
-    pub fn new(fmc: stm32::FMC, _pins: PINS, _chip: IC) -> Self {
+    pub fn new(
+        fmc: stm32::FMC,
+        rec_fmc: rec::Fmc,
+        _pins: PINS,
+        _chip: IC,
+    ) -> Self {
         assert!(
             PINS::ADDRESS_LINES >= IC::CONFIG.row_bits,
             "Not enough address pins to access all SDRAM rows"
@@ -128,7 +133,7 @@ where
         );
 
         Sdram {
-            mem: Fmc::new(fmc),
+            mem: Fmc::new(fmc, rec_fmc),
             _pins: PhantomData,
             _chip: PhantomData,
         }
@@ -148,11 +153,12 @@ where
     /// enough pins to access the whole memory.
     pub unsafe fn new_unchecked(
         fmc: stm32::FMC,
+        rec_fmc: rec::Fmc,
         _pins: PINS,
         _chip: IC,
     ) -> Self {
         Sdram {
-            mem: Fmc::new(fmc),
+            mem: Fmc::new(fmc, rec_fmc),
             _pins: PhantomData,
             _chip: PhantomData,
         }
@@ -197,7 +203,9 @@ where
 
         // Calcuate SD clock from the current `fmc_ker_ck`
         let sd_clock_hz = {
-            let fmc_ker_ck_hz = Fmc::get_ker_clk(core_clocks)
+            let fmc_ker_ck_hz = self
+                .mem
+                .get_ker_clk(core_clocks)
                 .expect("FMC kernel clock is not running!")
                 .0;
             fmc_ker_ck_hz / IC::CONFIG.sd_clock_divide as u32
