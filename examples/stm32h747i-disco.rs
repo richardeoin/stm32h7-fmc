@@ -164,7 +164,7 @@ fn main() -> ! {
 
     // Initialise clocks...
     let rcc = dp.RCC.constrain();
-    let mut ccdr = rcc
+    let ccdr = rcc
         .use_hse(25.mhz()) // XTAL X2
         .sys_ck(200.mhz())
         .hclk(200.mhz())
@@ -181,12 +181,12 @@ fn main() -> ! {
     cp.DWT.enable_cycle_counter();
 
     // Initialise IO...
-    let gpiod = dp.GPIOD.split(&mut ccdr.ahb4);
-    let gpioe = dp.GPIOE.split(&mut ccdr.ahb4);
-    let gpiof = dp.GPIOF.split(&mut ccdr.ahb4);
-    let gpiog = dp.GPIOG.split(&mut ccdr.ahb4);
-    let gpioh = dp.GPIOH.split(&mut ccdr.ahb4);
-    let gpioi = dp.GPIOI.split(&mut ccdr.ahb4);
+    let gpiod = dp.GPIOD.split(ccdr.peripheral.GPIOD);
+    let gpioe = dp.GPIOE.split(ccdr.peripheral.GPIOE);
+    let gpiof = dp.GPIOF.split(ccdr.peripheral.GPIOF);
+    let gpiog = dp.GPIOG.split(ccdr.peripheral.GPIOG);
+    let gpioh = dp.GPIOH.split(ccdr.peripheral.GPIOH);
+    let gpioi = dp.GPIOI.split(ccdr.peripheral.GPIOI);
 
     let mut lcd_led = gpioi.pi13.into_push_pull_output(); // LED2
     lcd_led.set_low().ok();
