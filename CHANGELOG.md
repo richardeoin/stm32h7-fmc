@@ -10,5 +10,5 @@
 * In examples: Explicitly annotate pointer types, set correct length
 * Started Changelog
 
-[Unreleased]: https://github.com/stm32-rs/stm32h7xx-hal/compare/v0.2.0...HEAD
-[v0.1.2]: https://github.com/stm32-rs/stm32h7xx-hal/compare/v0.1.2...v0.2.0
+[Unreleased]: https://github.com/richardeoin/stm32h7-fmc/compare/v0.2.0...HEAD
+[v0.1.2]: https://github.com/richardeoin/stm32h7-fmc/compare/v0.1.2...v0.2.0

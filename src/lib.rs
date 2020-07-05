@@ -1,10 +1,10 @@
-//! Hardware Abstraction Layer for Flexible Memory Controller (FMC) on
+//! Hardware Abstraction Layer for Flexible Memory Controller (FMC) on the
 //! STM32H7
 //!
 //! Currently only SDRAM functions are implemented.
 //!
 //! This crate depends on the GPIO, Clock and Delay functionality from
-//! stm32h7xx-hal
+//! [`stm32h7xx-hal`].
 //!
 //! # SDRAM
 //!
@@ -90,6 +90,7 @@
 //! defined in the Apache-2.0 license, shall be dual licensed as
 //! above, without any additional terms or conditions.
 //!
+//! [`stm32h7xx-hal`]: https://crates.io/crates/stm32h7xx-hal
 #![no_std]
 // rustc lints.
 #![warn(
